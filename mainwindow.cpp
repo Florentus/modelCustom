@@ -9,7 +9,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     TreeModel *model = new TreeModel({"toto","Alain"});
     ui->tableView->setModel(model);
-    model->insertRows(0,2);   
+    model->insertRows(0,2); // pour test
+     int i =4;
+     i++;
 }
 
 MainWindow::~MainWindow()
