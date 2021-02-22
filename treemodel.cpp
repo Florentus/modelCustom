@@ -88,6 +88,10 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
+    if (role == Qt::CheckStateRole) {
+        return Qt::Checked;
+    }
+
     if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
 
@@ -102,7 +106,9 @@ Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return Qt::NoItemFlags;
 
+    return Qt::ItemIsUserCheckable | Qt::ItemIsEditable | QAbstractItemModel::flags(index);;
     return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
+
 }
 //! [3]
 
