@@ -76,6 +76,7 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool setFlags(const QModelIndex &index, Qt::ItemFlags flags);
     bool setData(const QModelIndex &index, const QVariant &value,int role = Qt::EditRole) override;
     bool setHeaderData(int section, Qt::Orientation orientation,const QVariant &value, int role = Qt::EditRole) override;
 
@@ -84,10 +85,10 @@ public:
     bool insertRows(int position, int rows,const QModelIndex &parent = QModelIndex()) override;
     bool removeRows(int position, int rows,const QModelIndex &parent = QModelIndex()) override;
 
-
-private:
-    void setupModelData(const QStringList &lines, TreeItem *parent);
     TreeItem *getItem(const QModelIndex &index) const;
+
+private:    
+
 
     TreeItem *rootItem;
     TreeItem *headerItem;

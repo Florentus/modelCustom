@@ -54,11 +54,26 @@
 #include <QVariant>
 #include <QVector>
 
+class Items {
+public:
+
+    struct item_t {              // Contenu de la combo box
+        int role;
+        QVariant value;
+    };
+
+    QVector<item_t> items;
+
+    QVariant data(int role) const;
+    void setData(const QVariant &value, int role);
+};
+
 
 class TreeItem
 {
 public:
-    explicit TreeItem(const QVector<QVariant> &data = {}, TreeItem *parent = nullptr);
+    explicit TreeItem(const QVector<Items> &data = {}, TreeItem *parent = nullptr);
+    explicit TreeItem(const QStringList &qstrList);
     ~TreeItem();
 
     TreeItem *child(int number);
@@ -70,18 +85,33 @@ public:
 
     TreeItem *parent();
 
-    QVariant data(int column) const;
-    bool setData(int column, const QVariant &value);
+    QVariant data(int column, int role=Qt::DisplayRole) const;
+    bool setData(int column, const QVariant &value, int role=Qt::EditRole);
+    Qt::ItemFlags flags(int column) const;
+    bool setFlags(int column, Qt::ItemFlags flags);
 
     bool insertChildren(int position, int count, int columns);
     bool insertColumns(int position, int columns);
 
     bool removeChildren(int position, int count);
     bool removeColumns(int position, int columns);
+    static Qt::ItemFlags getDefaultsFlags() {return Qt::ItemFlags(defaultsFlags);}
+
+    void setEditable(int column, bool editable);
+    void setCheckable(int column, bool checkable);
 
 private:
+    void changeFlags(int column, bool enable, Qt::ItemFlags f);
+
+    static const int defaultsFlags =  Qt::ItemIsSelectable
+                                     |Qt::ItemIsEnabled
+                                     |Qt::ItemIsEditable
+                                     |Qt::ItemIsDragEnabled
+                                     |Qt::ItemIsDropEnabled;
+
+
     QVector<TreeItem*> childItems;
-    QVector<QVariant> itemData;
+    QVector<Items> itemData;
     TreeItem *parentItem;
 };
 
