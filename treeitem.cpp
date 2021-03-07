@@ -1,4 +1,3 @@
-
 #include "treeitem.h"
 
 // items implementation
