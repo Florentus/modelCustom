@@ -52,6 +52,7 @@
 #define TREEMODEL_H
 
 #include <QAbstractItemModel>
+#include <QLinearGradient>
 #include <QModelIndex>
 #include <QVariant>
 
@@ -63,13 +64,24 @@ class TreeModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
+
+    enum {
+        UidHeaderRole = Qt::UserRole + 2
+    };
+
     TreeModel(const QStringList &headers,QObject *parent = nullptr);
     ~TreeModel();
 
     QVariant data(const QModelIndex &index, int role) const override;
+    bool setData(const QModelIndex &index, const QVariant &value,int role = Qt::EditRole) override;
+
     QVariant headerData(int section, Qt::Orientation orientation,int role = Qt::DisplayRole) const override;
+    bool setHeaderData(int section, Qt::Orientation orientation,const QVariant &value, int role = Qt::EditRole) override;
+
+    void setHeaderItem(const QStringList &QStrList) {headerItem = QStrList;};
 
     QModelIndex index(int row, int column,const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex indexHelper(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &index) const override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -77,8 +89,9 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     bool setFlags(const QModelIndex &index, Qt::ItemFlags flags);
-    bool setData(const QModelIndex &index, const QVariant &value,int role = Qt::EditRole) override;
-    bool setHeaderData(int section, Qt::Orientation orientation,const QVariant &value, int role = Qt::EditRole) override;
+
+    void setEditable(const QModelIndex &index,bool editable);
+    void setCheckable(const QModelIndex &index, bool checkable);
 
     bool insertColumns(int position, int columns,const QModelIndex &parent = QModelIndex()) override;
     bool removeColumns(int position, int columns,const QModelIndex &parent = QModelIndex()) override;
@@ -87,11 +100,13 @@ public:
 
     TreeItem *getItem(const QModelIndex &index) const;
 
-private:    
 
+private:
+
+    QLinearGradient linearGrad;
 
     TreeItem *rootItem;
-    TreeItem *headerItem;
+    QStringList headerItem;
 };
 
 #endif // TREEMODEL_H

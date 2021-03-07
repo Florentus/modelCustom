@@ -87,14 +87,18 @@ public:
 
     QVariant data(int column, int role=Qt::DisplayRole) const;
     bool setData(int column, const QVariant &value, int role=Qt::EditRole);
+
     Qt::ItemFlags flags(int column) const;
     bool setFlags(int column, Qt::ItemFlags flags);
+
+    void insertItemForAnHeader(int column, QStringList &QStrList,int role);
 
     bool insertChildren(int position, int count, int columns);
     bool insertColumns(int position, int columns);
 
     bool removeChildren(int position, int count);
     bool removeColumns(int position, int columns);
+
     static Qt::ItemFlags getDefaultsFlags() {return Qt::ItemFlags(defaultsFlags);}
 
     void setEditable(int column, bool editable);

@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/icones">
+        <file>checkbox_empty.png</file>
+        <file>checkbox_full.png</file>
+        <file>checkbox_tri_state.png</file>
+    </qresource>
+</RCC>

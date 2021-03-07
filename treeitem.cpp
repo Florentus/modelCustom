@@ -169,6 +169,9 @@ Qt::ItemFlags TreeItem::flags(int column) const
 
 bool TreeItem::setFlags(int column, Qt::ItemFlags flags)
 {
+    if (column < 0 || column >= itemData.size())
+        return false;
+
     QVariant v = data(column,Qt::UserRole - 1);
     if (!v.isValid()) flags = flags | Qt::ItemFlags(defaultsFlags);
 
@@ -176,13 +179,34 @@ bool TreeItem::setFlags(int column, Qt::ItemFlags flags)
     return true;
 }
 
+// insere une ligne qui sert de header dans un treeView
+void TreeItem::insertItemForAnHeader(int column, QStringList &QStrList, int role)
+{
+
+    if (column > QStrList.size()) column = QStrList.size();
+    insertChildren(0,1,column);
+
+    const QString *tmp;
+
+    for (int i=0; i<column; i++) {
+        tmp = &QStrList.at(i);
+        childItems[0]->itemData[i].setData(*tmp, role);
+    }
+}
+
 void TreeItem::setEditable(int column,bool editable)
 {
+    if (column < 0 || column >= itemData.size())
+        return;
+
     changeFlags(column,editable, Qt::ItemIsEditable);
 }
 
 void TreeItem::setCheckable(int column, bool checkable)
 {
+    if (column < 0 || column >= itemData.size())
+        return;
+
     if (checkable) {
         if (!data(column,Qt::CheckStateRole).isValid())
             setData(column, Qt::Unchecked, Qt::CheckStateRole);
