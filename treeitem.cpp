@@ -33,8 +33,7 @@ QVariant Items::data(int role) const
 //***************************************************************************
 
 TreeItem::TreeItem(const QVector<Items> &data, TreeItem *parent)
-    : itemData(data),
-      parentItem(parent)
+    : itemData(data), parentItem(parent)
 {}
 
 TreeItem::TreeItem(const QStringList &qstrList)
@@ -61,12 +60,12 @@ TreeItem *TreeItem::child(int number)
     return childItems.at(number);
 }
 
-int TreeItem::childCount() const
+int TreeItem::rowCount() const
 {
     return childItems.count();
 }
 
-int TreeItem::childNumber() const
+int TreeItem::rowNumber() const
 {
     if (parentItem)
         return parentItem->childItems.indexOf(const_cast<TreeItem*>(this));
@@ -84,66 +83,6 @@ QVariant TreeItem::data(int column, int role) const
         return QVariant();
 
     return itemData.at(column).data(role);
-
-}
-
-bool TreeItem::insertChildren(int position, int count, int columns)
-{
-    if (position < 0 || position > childItems.size())
-        return false;
-
-    for (int row = 0; row < count; ++row) {
-        QVector<Items> data(columns);
-        TreeItem *item = new TreeItem(data, this);
-        childItems.insert(position, item);
-    }
-
-    return true;
-}
-
-bool TreeItem::insertColumns(int position, int columns)
-{
-    if (position < 0 || position > itemData.size())
-        return false;
-
-    for (int column = 0; column < columns; ++column) {
-        itemData.insert(position,{});
-    }
-
-    for (TreeItem *child : qAsConst(childItems))
-        child->insertColumns(position, columns);
-
-    return true;
-}
-
-TreeItem *TreeItem::parent()
-{
-    return parentItem;
-}
-
-bool TreeItem::removeChildren(int position, int count)
-{
-    if (position < 0 || position + count > childItems.size())
-        return false;
-
-    for (int row = 0; row < count; ++row)
-        delete childItems.takeAt(position);
-
-    return true;
-}
-
-bool TreeItem::removeColumns(int position, int columns)
-{
-    if (position < 0 || position + columns > itemData.size())
-        return false;
-
-    for (int column = 0; column < columns; ++column)
-        itemData.remove(position);
-
-    for (TreeItem *child : qAsConst(childItems))
-        child->removeColumns(position, columns);
-
-    return true;
 }
 
 bool TreeItem::setData(int column, const QVariant &value, int role)
@@ -166,6 +105,88 @@ Qt::ItemFlags TreeItem::flags(int column) const
     return Qt::ItemFlags(v.toInt());
 }
 
+int TreeItem::find(QVariant data, int role)
+{
+    for (int i=0;i<itemData.size();i++) {
+        if (itemData.at(i).data(role) == data) return i;
+    }
+    return -1;
+}
+
+TreeItem *TreeItem::parent()
+{
+    return parentItem;
+}
+
+bool TreeItem::insertRows(int position, int count, int columns)
+{
+    if (position < 0 || position > childItems.size())
+        return false;
+
+    for (int row = 0; row < count; ++row) {
+        QVector<Items> data(columns);
+        TreeItem *item = new TreeItem(data, this);
+        childItems.insert(position, item);
+    }
+
+    return true;
+}
+
+bool TreeItem::removeRows(int position, int count)
+{
+    if (position < 0 || position + count > childItems.size())
+        return false;
+
+    for (int row = 0; row < count; ++row)
+        delete childItems.takeAt(position);
+
+    return true;
+}
+
+bool TreeItem::insertColumns(int position, int columns)
+{
+    if (position < 0 || position > itemData.size())
+        return false;
+
+    for (int column = 0; column < columns; ++column) {
+        itemData.insert(position,{});
+    }
+
+    for (TreeItem *child : qAsConst(childItems))
+        child->insertColumns(position, columns);
+
+    return true;
+}
+
+bool TreeItem::removeColumns(int position, int columns)
+{
+    if (position < 0 || position + columns > itemData.size())
+        return false;
+
+    for (int column = 0; column < columns; ++column)
+        itemData.remove(position);
+
+    for (TreeItem *child : qAsConst(childItems))
+        child->removeColumns(position, columns);
+
+    return true;
+}
+
+// insere une ligne qui sert de header dans un treeView
+void TreeItem::insertItemForAnHeader(int column, QStringList &QStrList, int role)
+{
+
+    if (column > QStrList.size()) column = QStrList.size();
+    insertRows(0,1,column);
+
+    const QString *tmp;
+
+    for (int i=0; i<column; i++) {
+        tmp = &QStrList.at(i);
+        childItems[0]->itemData[i].setData(*tmp, role);
+    }
+}
+
 bool TreeItem::setFlags(int column, Qt::ItemFlags flags)
 {
     if (column < 0 || column >= itemData.size())
@@ -176,21 +197,6 @@ bool TreeItem::setFlags(int column, Qt::ItemFlags flags)
 
     itemData[column].setData((int)flags, Qt::UserRole - 1);
     return true;
-}
-
-// insere une ligne qui sert de header dans un treeView
-void TreeItem::insertItemForAnHeader(int column, QStringList &QStrList, int role)
-{
-
-    if (column > QStrList.size()) column = QStrList.size();
-    insertChildren(0,1,column);
-
-    const QString *tmp;
-
-    for (int i=0; i<column; i++) {
-        tmp = &QStrList.at(i);
-        childItems[0]->itemData[i].setData(*tmp, role);
-    }
 }
 
 void TreeItem::setEditable(int column,bool editable)
@@ -213,10 +219,16 @@ void TreeItem::setCheckable(int column, bool checkable)
     changeFlags(column, checkable, Qt::ItemIsUserCheckable);
 }
 
+void TreeItem::setToolTip(int column,const QString &atoolTip)
+{
+    if (column < 0 || column >= itemData.size())
+        return;
+    setData(column, atoolTip, Qt::ToolTipRole);
+}
 
 void TreeItem::changeFlags(int column, bool enable, Qt::ItemFlags f)
 {
-      Qt::ItemFlags _flags = flags(column);
+    Qt::ItemFlags _flags = flags(column);
       if (enable)
           _flags |= f;
       else

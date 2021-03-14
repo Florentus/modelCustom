@@ -51,12 +51,12 @@
 #ifndef TREEMODEL_H
 #define TREEMODEL_H
 
+#include "treeitem.h"
+
 #include <QAbstractItemModel>
 #include <QLinearGradient>
 #include <QModelIndex>
 #include <QVariant>
-
-class TreeItem;
 
 
 class TreeModel : public QAbstractItemModel
@@ -78,13 +78,16 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation,int role = Qt::DisplayRole) const override;
     bool setHeaderData(int section, Qt::Orientation orientation,const QVariant &value, int role = Qt::EditRole) override;
 
-    void setHeaderItem(const QStringList &QStrList) {headerItem = QStrList;};
+    // init list utilisée pour initialiser le header dans une branche du treeView
+    void setHeaderItems(const QStringList &QStrList) {headerItem = QStrList;};
 
     QModelIndex index(int row, int column,const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex indexHelper(int row, int column, const QModelIndex &parent) const;
+    QModelIndex indexSkipHeader(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &index) const override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCountSkipHeader(const QModelIndex &parent) const;
+
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
@@ -92,16 +95,18 @@ public:
 
     void setEditable(const QModelIndex &index,bool editable);
     void setCheckable(const QModelIndex &index, bool checkable);
+    void setToolTip(const QModelIndex &index, const QString &atoolTip);
 
     bool insertColumns(int position, int columns,const QModelIndex &parent = QModelIndex()) override;
     bool removeColumns(int position, int columns,const QModelIndex &parent = QModelIndex()) override;
     bool insertRows(int position, int rows,const QModelIndex &parent = QModelIndex()) override;
     bool removeRows(int position, int rows,const QModelIndex &parent = QModelIndex()) override;
 
-    TreeItem *getItem(const QModelIndex &index) const;
-
+    int indexHeader(const QModelIndex &lindex, QString header);
 
 private:
+
+    TreeItem *getItem(const QModelIndex &index) const;
 
     QLinearGradient linearGrad;
 

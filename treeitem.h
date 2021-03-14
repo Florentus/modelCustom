@@ -57,7 +57,7 @@
 class Items {
 public:
 
-    struct item_t {              // Contenu de la combo box
+    struct item_t {
         int role;
         QVariant value;
     };
@@ -71,6 +71,7 @@ public:
 
 class TreeItem
 {
+
 public:
     explicit TreeItem(const QVector<Items> &data = {}, TreeItem *parent = nullptr);
     explicit TreeItem(const QStringList &qstrList);
@@ -78,10 +79,10 @@ public:
 
     TreeItem *child(int number);
 
-    int childCount() const;
+    int rowCount() const;
     int columnCount() const;
 
-    int childNumber() const;
+    int rowNumber() const;
 
     TreeItem *parent();
 
@@ -90,19 +91,22 @@ public:
 
     Qt::ItemFlags flags(int column) const;
     bool setFlags(int column, Qt::ItemFlags flags);
+    static Qt::ItemFlags getDefaultsFlags() {return Qt::ItemFlags(defaultsFlags);}
 
+    // insere une ligne qui sert de header dans un treeView
     void insertItemForAnHeader(int column, QStringList &QStrList,int role);
 
-    bool insertChildren(int position, int count, int columns);
+    bool insertRows(int position, int count, int columns);
     bool insertColumns(int position, int columns);
 
-    bool removeChildren(int position, int count);
+    bool removeRows(int position, int count);
     bool removeColumns(int position, int columns);
-
-    static Qt::ItemFlags getDefaultsFlags() {return Qt::ItemFlags(defaultsFlags);}
 
     void setEditable(int column, bool editable);
     void setCheckable(int column, bool checkable);
+    void setToolTip(int column, const QString &atoolTip);
+
+    int find(QVariant data, int role);
 
 private:
     void changeFlags(int column, bool enable, Qt::ItemFlags f);
