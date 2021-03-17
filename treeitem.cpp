@@ -1,7 +1,20 @@
 #include "treeitem.h"
+#include <QDebug>
 
 // items implementation
 //***************************************************************************
+void Items::operator=(const Items &p)
+{
+    for (int i=0;i<p.items.size();i++) {
+        items << p.items[i];
+    }
+}
+
+Items::Items (const Items &p)
+{
+  *this = p;
+}
+
 void Items::setData(const QVariant &value, int role )
 {
     QVector<item_t>::iterator it;
@@ -33,7 +46,7 @@ QVariant Items::data(int role) const
 //***************************************************************************
 
 TreeItem::TreeItem(const QVector<Items> &data, TreeItem *parent)
-    : itemData(data), parentItem(parent)
+    :  parentItem(parent), itemData(data)
 {}
 
 TreeItem::TreeItem(const QStringList &qstrList)
@@ -51,6 +64,14 @@ TreeItem::TreeItem(const QStringList &qstrList)
 TreeItem::~TreeItem()
 {
     qDeleteAll(childItems);
+    qDeleteAll(deletedChildItems);
+}
+
+void TreeItem::backupItemData()
+{
+    itemDataSaved.clear();
+    // A la première modification d'un élément, detach est appelé (ex : itemData[n] provoque un detach)
+    itemDataSaved = itemData;
 }
 
 TreeItem *TreeItem::child(int number)
@@ -85,10 +106,23 @@ QVariant TreeItem::data(int column, int role) const
     return itemData.at(column).data(role);
 }
 
-bool TreeItem::setData(int column, const QVariant &value, int role)
+bool TreeItem::setData(int column, const QVariant &value,Global::rowStatus mode, int role)
 {
     if (column < 0 || column >= itemData.size())
         return false;
+
+    // Si ce n'est pas une nouvelle ligne (on est pas en mode init) alors on sauvegarde si pas encore fait
+    if (mode == Global::edit && rowStatus == Global::init) {
+
+        rowStatus = Global::modified;
+
+        qDebug() << "role : " << role << " " << value << itemDataSaved.isEmpty();
+
+        if (itemDataSaved.isEmpty()) {
+            qDebug() << "Backup";
+            backupItemData();
+        }
+    }
 
     itemData[column].setData(value, role);
     return true;
@@ -118,7 +152,7 @@ TreeItem *TreeItem::parent()
     return parentItem;
 }
 
-bool TreeItem::insertRows(int position, int count, int columns)
+bool TreeItem::insertRows(int position, int count, int columns, Global::rowStatus mode)
 {
     if (position < 0 || position > childItems.size())
         return false;
@@ -126,6 +160,7 @@ bool TreeItem::insertRows(int position, int count, int columns)
     for (int row = 0; row < count; ++row) {
         QVector<Items> data(columns);
         TreeItem *item = new TreeItem(data, this);
+        item->rowStatus = mode;
         childItems.insert(position, item);
     }
 
@@ -137,8 +172,12 @@ bool TreeItem::removeRows(int position, int count)
     if (position < 0 || position + count > childItems.size())
         return false;
 
-    for (int row = 0; row < count; ++row)
-        delete childItems.takeAt(position);
+    for (int row = 0; row < count; ++row) {
+        TreeItem* lTreeItem = childItems.takeAt(position);
+        if (lTreeItem->rowStatus != Global::inserted)
+            deletedChildItems.push_back(lTreeItem);
+        else delete lTreeItem;
+    }
 
     return true;
 }
@@ -177,7 +216,7 @@ void TreeItem::insertItemForAnHeader(int column, QStringList &QStrList, int role
 {
 
     if (column > QStrList.size()) column = QStrList.size();
-    insertRows(0,1,column);
+    insertRows(0,1,column,Global::init);
 
     const QString *tmp;
 
@@ -214,7 +253,7 @@ void TreeItem::setCheckable(int column, bool checkable)
 
     if (checkable) {
         if (!data(column,Qt::CheckStateRole).isValid())
-            setData(column, Qt::Unchecked, Qt::CheckStateRole);
+            setData(column, Qt::Unchecked, Global::init, Qt::CheckStateRole);
     }
     changeFlags(column, checkable, Qt::ItemIsUserCheckable);
 }
@@ -223,7 +262,7 @@ void TreeItem::setToolTip(int column,const QString &atoolTip)
 {
     if (column < 0 || column >= itemData.size())
         return;
-    setData(column, atoolTip, Qt::ToolTipRole);
+    setData(column, atoolTip, Global::init, Qt::ToolTipRole);
 }
 
 void TreeItem::changeFlags(int column, bool enable, Qt::ItemFlags f)

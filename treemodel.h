@@ -102,13 +102,18 @@ public:
     bool insertRows(int position, int rows,const QModelIndex &parent = QModelIndex()) override;
     bool removeRows(int position, int rows,const QModelIndex &parent = QModelIndex()) override;
 
-    int indexHeader(const QModelIndex &lindex, QString header);
+    void setMode(Global::rowStatus lmode) {mode = lmode;}
+    Global::rowStatus getRowMode(const QModelIndex &index);
+    int indexHeader(const QModelIndex &index, QString header);
+
+    void backupTreeItem(const QModelIndex &index);
 
 private:
 
     TreeItem *getItem(const QModelIndex &index) const;
 
     QLinearGradient linearGrad;
+    Global::rowStatus mode = Global::init;
 
     TreeItem *rootItem;
     QStringList headerItem;

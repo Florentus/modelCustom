@@ -72,16 +72,23 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="DeleteModel">
          <property name="text">
-          <string>PushButton</string>
+          <string>Delete model</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="ButtonInsert">
          <property name="text">
-          <string>PushButton</string>
+          <string>Insert Line</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="DeleteLine">
+         <property name="text">
+          <string>Delete line</string>
          </property>
         </widget>
        </item>

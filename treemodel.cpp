@@ -98,6 +98,14 @@ int TreeModel::indexHeader(const QModelIndex &lindex,QString header)
     return i;
 }
 
+void TreeModel::backupTreeItem(const QModelIndex &index)
+{
+    if (index.isValid()) {
+        TreeItem *item = getItem(index);
+        item->backupItemData();
+    }
+}
+
 QVariant TreeModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
@@ -151,7 +159,7 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value, int rol
     role = (role == Qt::EditRole) ? Qt::DisplayRole : role;
 
     TreeItem *item = getItem(index);
-    bool result = item->setData(index.column(), value, role);
+    bool result = item->setData(index.column(), value, mode, role);
 
     if (result)
         emit dataChanged(index, index);
@@ -174,7 +182,7 @@ bool TreeModel::setHeaderData(int section, Qt::Orientation orientation,
     if (role != Qt::EditRole || orientation != Qt::Horizontal)
         return false;
 
-    const bool result = rootItem->setData(section, value);
+    const bool result = rootItem->setData(section, value, Global::init);
 
     if (result)
         emit headerDataChanged(orientation, section, section);
@@ -260,13 +268,16 @@ bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
 
     bool success;
 
+    // si on est en mode init alors on est en insertion d'une nouvelle ligne
+    Global::rowStatus _mode = (mode == Global::init ? mode : Global::inserted);
+
     if (parentItem == rootItem) {
-        success = parentItem->insertRows(position,rows,rootItem->columnCount());
+        success = parentItem->insertRows(position,rows,rootItem->columnCount(),_mode);
     } else {
         if (parentItem->rowCount() == 0) {
             parentItem->insertItemForAnHeader(rootItem->columnCount(),headerItem, UidHeaderRole);
         }
-        success = parentItem->insertRows(position+1,rows,rootItem->columnCount());
+        success = parentItem->insertRows(position+1,rows,rootItem->columnCount(),_mode);
     }
 
     endInsertRows();
@@ -297,6 +308,18 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
     endRemoveRows();
 
     return success;
+}
+
+Global::rowStatus TreeModel::getRowMode(const QModelIndex &index)
+{
+    if (!index.isValid())
+        return Global::undef;
+
+    TreeItem *item = getItem(index);
+    if (item)
+        return item->getRowStatus();
+
+    return Global::undef;
 }
 
 

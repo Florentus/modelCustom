@@ -17,6 +17,7 @@ SOURCES += \
 
 HEADERS += \
     centeredboxstyle.h \
+    global.h \
     mainwindow.h \
     treeitem.h \
     treemodel.h
